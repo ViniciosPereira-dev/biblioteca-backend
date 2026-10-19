@@ -37,6 +37,26 @@ class LivroRepository {
                 });
             });
         }
+
+        async buscarPorId(id) {
+        return new Promise((resolve, reject) => {
+            const sql = `SELECT * FROM livros WHERE id = ?`;
+            db.get(sql, [id], (err, row) => {
+                if (err) return reject(err);
+                resolve(row);
+            });
+        });
+    }
+
+    async atualizarStatus(id, status) {
+        return new Promise((resolve, reject) => {
+            const sql = `UPDATE livros SET status = ? WHERE id = ?`;
+            db.run(sql, [status, id], function(err) {
+                if (err) return reject(err);
+                resolve();
+            });
+        });
+    }
 }
 
 module.exports = new LivroRepository();
