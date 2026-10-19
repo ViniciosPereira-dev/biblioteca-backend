@@ -5,4 +5,8 @@ const router = Router();
 
 router.post('/', (req, res) => livroController.cadastrar(req, res));
 
+router.get('/', (req, res) => livroController.listar(req, res));
+
+router.get('/:rfid', (req, res) => livroController.buscar(req, res));
+
 module.exports = router;

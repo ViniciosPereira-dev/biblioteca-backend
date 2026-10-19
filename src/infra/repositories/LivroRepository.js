@@ -18,6 +18,25 @@ class LivroRepository {
         });
     }
 
+    async listarTodos() {
+        return new Promise((resolve, reject) => {
+            const sql = `SELECT * FROM livros`;
+            db.all(sql, [], (err, rows) => {
+                if (err) return reject(err);
+                resolve(rows);
+            });
+        });
+    }
+
+    async buscarPorRfid(rfid_tag) {
+            return new Promise((resolve, reject) => {
+                const sql = `SELECT * FROM livros WHERE rfid_tag = ?`;
+                db.get(sql, [rfid_tag], (err, row) => {
+                    if (err) return reject(err);
+                    resolve(row);
+                });
+            });
+        }
 }
 
 module.exports = new LivroRepository();
