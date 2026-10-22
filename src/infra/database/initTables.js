@@ -9,6 +9,7 @@ function criarTabelas() {
                 titulo TEXT NOT NULL,
                 autor TEXT,
                 genero TEXT,
+                isbn TEXT UNIQUE NOT NULL,
                 status TEXT DEFAULT 'DISPONIVEL'
             )
         `);
@@ -27,6 +28,7 @@ function criarTabelas() {
                 id TEXT PRIMARY KEY,
                 livro_id TEXT NOT NULL,
                 leitor_id TEXT NOT NULL,
+                telefone TEXT,
                 data_retirada DATETIME DEFAULT CURRENT_TIMESTAMP,
                 data_devolucao DATETIME,
                 status TEXT DEFAULT 'ATIVO',

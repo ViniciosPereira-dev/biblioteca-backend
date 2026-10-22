@@ -6,9 +6,9 @@ class LivroController {
     async cadastrar(req, res) {
         try {
 
-            const { rfid_tag, titulo, autor, genero } = req.body;
+            const { rfid_tag, titulo, autor, genero, isbn } = req.body;
 
-            const novoLivro = new Livro({ rfid_tag, titulo, autor, genero });
+            const novoLivro = new Livro({ rfid_tag, titulo, autor, genero, isbn });
 
             const livroSalvo = await livroRepository.salvar(novoLivro);
 

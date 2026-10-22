@@ -1,12 +1,14 @@
 const { v4: uuidv4 } = require('uuid');
 
 class Livro {
-    constructor({ id, rfid_tag, titulo, autor, genero, status }) {
+    constructor({ id, rfid_tag, titulo, autor, genero, isbn, status }) {
         this.id = id || uuidv4();
         this.rfid_tag = rfid_tag;
         this.titulo = titulo;
         this.autor = autor;
         this.genero = genero || 'Não Informado';
+        this.isbn = isbn;
+
         this.status = status || 'DISPONIVEL';
 
         this.validar(); 
@@ -15,6 +17,7 @@ class Livro {
     validar() {
         if (!this.rfid_tag) throw new Error("A Tag RFID é obrigatória.");
         if (!this.titulo) throw new Error("O Título do livro é obrigatório.");
+        if (!this.isbn) throw new Error("O ISBN do livro é obrigatório.");
     }
 
     emprestar() {
