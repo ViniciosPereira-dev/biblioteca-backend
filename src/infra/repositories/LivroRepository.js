@@ -4,9 +4,9 @@ class LivroRepository {
     
     async salvar(livro) {
         return new Promise((resolve, reject) => {
-            const sql = `INSERT INTO livros (id, rfid_tag, titulo, autor, genero, isbn, status) VALUES (?, ?, ?, ?, ?, ?, ?)`;
-            
-            db.run(sql, [livro.id, livro.rfid_tag, livro.titulo, livro.autor, livro.genero, livro.isbn, livro.status], function(err) {
+            const sql = `INSERT INTO livros (id, rfid_tag, titulo, autor, genero, isbn, status, estante, prateleira) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+            db.run(sql, [livro.id, livro.rfid_tag, livro.titulo, livro.autor, livro.genero, livro.isbn, livro.status, livro.estante, livro.prateleira], function(err) {
                 if (err) {
                     if (err.message.includes('UNIQUE constraint failed')) {
                         return reject(new Error('Esta Tag RFID já está cadastrada.'));
@@ -18,15 +18,29 @@ class LivroRepository {
         });
     }
 
-    async listarTodos() {
-        return new Promise((resolve, reject) => {
-            const sql = `SELECT * FROM livros`;
-            db.all(sql, [], (err, rows) => {
-                if (err) return reject(err);
-                resolve(rows);
+    listar() {
+            return new Promise((resolve, reject) => {
+                // A query faz o cruzamento das 3 tabelas (livros + emprestimos + leitores)
+                const query = `
+                    SELECT 
+                        l.*, 
+                        le.nome AS leitor_nome, 
+                        e.data_devolucao 
+                    FROM livros l
+                    LEFT JOIN emprestimos e ON l.id = e.livro_id AND e.status = 'ATIVO'
+                    LEFT JOIN leitores le ON e.leitor_id = le.cpf
+                `;
+
+                db.all(query, [], (err, rows) => {
+                    if (err) {
+                        console.error('[ERRO SQL - Listar Livros]', err.message);
+                        reject(err);
+                    } else {
+                        resolve(rows);
+                    }
+                });
             });
-        });
-    }
+        }
 
     async buscarPorRfid(rfid_tag) {
             return new Promise((resolve, reject) => {

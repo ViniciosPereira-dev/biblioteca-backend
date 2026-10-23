@@ -29,4 +29,6 @@ class LeitorController {
     }
 }
 
+
+
 module.exports = new LeitorController();

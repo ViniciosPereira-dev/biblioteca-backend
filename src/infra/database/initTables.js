@@ -9,8 +9,10 @@ function criarTabelas() {
                 titulo TEXT NOT NULL,
                 autor TEXT,
                 genero TEXT,
-                isbn TEXT UNIQUE NOT NULL,
-                status TEXT DEFAULT 'DISPONIVEL'
+                isbn TEXT NOT NULL,
+                status TEXT DEFAULT 'DISPONIVEL',
+                estante TEXT,
+                prateleira TEXT
             )
         `);
 

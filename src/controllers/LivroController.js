@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const Livro = require('../domain/entities/Livro');
 const livroRepository = require('../infra/repositories/LivroRepository');
 
@@ -5,10 +6,20 @@ class LivroController {
     
     async cadastrar(req, res) {
         try {
+            const { rfid_tag, titulo, autor, genero, isbn, estante, prateleira } = req.body;
 
-            const { rfid_tag, titulo, autor, genero, isbn } = req.body;
+            const id = crypto.randomUUID();
 
-            const novoLivro = new Livro({ rfid_tag, titulo, autor, genero, isbn });
+            const novoLivro = new Livro({ 
+                id, 
+                rfid_tag, 
+                titulo, 
+                autor, 
+                genero, 
+                isbn, 
+                estante, 
+                prateleira 
+            });
 
             const livroSalvo = await livroRepository.salvar(novoLivro);
 
@@ -24,7 +35,7 @@ class LivroController {
 
     async listar(req, res) {
         try {
-            const livros = await livroRepository.listarTodos();
+            const livros = await livroRepository.listar();
             return res.status(200).json(livros);
         } catch (error) {
             console.error('[CTRL - ERRO] Falha ao listar livros:', error);

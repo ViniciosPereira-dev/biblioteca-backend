@@ -1,15 +1,16 @@
-const { v4: uuidv4 } = require('uuid');
+const crypto = require('crypto');
 
 class Livro {
-    constructor({ id, rfid_tag, titulo, autor, genero, isbn, status }) {
-        this.id = id || uuidv4();
+    constructor({ id, rfid_tag, titulo, autor, genero, isbn, status, estante, prateleira }) {
+        this.id = id || crypto.randomUUID();
         this.rfid_tag = rfid_tag;
         this.titulo = titulo;
         this.autor = autor;
         this.genero = genero || 'Não Informado';
         this.isbn = isbn;
-
         this.status = status || 'DISPONIVEL';
+        this.estante = estante || 'Não Informado';
+        this.prateleira = prateleira || 'Não Informado';
 
         this.validar(); 
     }
