@@ -17,30 +17,35 @@ class LivroRepository {
             });
         });
     }
+listar() {
+        return new Promise((resolve, reject) => {
+            // Pega os livros e cruza com o empréstimo MAIS RECENTE daquele livro
+            const query = `
+                SELECT 
+                    l.*, 
+                    le.nome AS leitor_nome, 
+                    e.telefone AS leitor_telefone,
+                    e.data_devolucao 
+                FROM livros l
+                LEFT JOIN (
+                    SELECT livro_id, leitor_id, data_devolucao, telefone
+                    FROM emprestimos 
+                    ORDER BY id DESC
+                ) e ON l.id = e.livro_id
+                LEFT JOIN leitores le ON e.leitor_id = le.cpf
+                GROUP BY l.id
+            `;
 
-    listar() {
-            return new Promise((resolve, reject) => {
-                // A query faz o cruzamento das 3 tabelas (livros + emprestimos + leitores)
-                const query = `
-                    SELECT 
-                        l.*, 
-                        le.nome AS leitor_nome, 
-                        e.data_devolucao 
-                    FROM livros l
-                    LEFT JOIN emprestimos e ON l.id = e.livro_id AND e.status = 'ATIVO'
-                    LEFT JOIN leitores le ON e.leitor_id = le.cpf
-                `;
-
-                db.all(query, [], (err, rows) => {
-                    if (err) {
-                        console.error('[ERRO SQL - Listar Livros]', err.message);
-                        reject(err);
-                    } else {
-                        resolve(rows);
-                    }
-                });
+            db.all(query, [], (err, rows) => {
+                if (err) {
+                    console.error('[ERRO SQL - Listar Livros]', err.message);
+                    reject(err);
+                } else {
+                    resolve(rows);
+                }
             });
-        }
+        });
+    }
 
     async buscarPorRfid(rfid_tag) {
             return new Promise((resolve, reject) => {
@@ -62,12 +67,19 @@ class LivroRepository {
         });
     }
 
-    async atualizarStatus(id, status) {
+async atualizarStatus(id, status) {
         return new Promise((resolve, reject) => {
-            const sql = `UPDATE livros SET status = ? WHERE id = ?`;
-            db.run(sql, [status, id], function(err) {
-                if (err) return reject(err);
-                resolve();
+            const query = `UPDATE livros SET status = ? WHERE id = ?`;
+            
+            db.run(query, [status, id], function (err) {
+                if (err) {
+                    console.error('[REPO - ERRO] Falha ao atualizar status:', err.message);
+                    reject(err);
+                } else {
+                    // this.changes indica quantas linhas foram alteradas no SQLite. 
+                    // Se for > 0, significa que deu certo.
+                    resolve(this.changes > 0); 
+                }
             });
         });
     }

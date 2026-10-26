@@ -1,11 +1,11 @@
 const { v4: uuidv4 } = require('uuid');
 
 class Emprestimo {
-    constructor({ id, livro_id, leitor_id }) {
+    constructor({ id, livro_id, leitor_id, telefone, data_devolucao }) {
         this.id = id || uuidv4();
         this.livro_id = livro_id;
         this.leitor_id = leitor_id;
-        
+        this.telefone = telefone || null; 
         this.data_retirada = new Date().toISOString(); 
         
         const dataDevolucao = new Date();

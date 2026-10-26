@@ -6,65 +6,64 @@ const leitorRepository = require('../infra/repositories/LeitorRepository');
 class EmprestimoController {
     
 async registrarEmprestimo(req, res) {
-        try {
-            // O frontend não precisa mais mandar o "nome" aqui, só o CPF (leitor_id) e telefone
-            const { rfid_tag, leitor_id, telefone } = req.body;
+    try {
+        // CORREÇÃO 1: Mapeado para 'leitor_id' para casar com o JSON enviado pelo App React Native
+        const { livro_id, leitor_id, data_devolucao } = req.body;
 
-            // 1. Verifica se o Livro existe e está disponível
-            const livroDb = await livroRepository.buscarPorRfid(rfid_tag);
-            if (!livroDb) {
-                return res.status(404).json({ erro: 'Livro não encontrado no sistema.' });
-            }
-            if (livroDb.status !== 'DISPONIVEL') {
-                return res.status(400).json({ erro: `Transação negada. O livro já consta como ${livroDb.status}.` });
-            }
-
-            // 2. Verifica se o Aluno (Leitor) existe no banco
-            // Você precisará ter essa função no seu leitorRepository
-            const leitorDb = await leitorRepository.buscarPorCpf(leitor_id);
-            if (!leitorDb) {
-                // SE O ALUNO NÃO EXISTIR, BARRA A OPERAÇÃO AQUI!
-                return res.status(404).json({ erro: 'CPF não encontrado. Cadastre o aluno primeiro.' });
-            }
-
-            // 3. Se passou pelas duas verificações, registra o empréstimo
-            const novoEmprestimo = new Emprestimo({ 
-                livro_id: livroDb.id, 
-                leitor_id: leitor_id, 
-                telefone: telefone,
-                nome: leitorDb.nome // Pega o nome seguro direto do banco de dados!
-            });
-
-            const emprestimoSalvo = await emprestimoRepository.salvar(novoEmprestimo);
-            await livroRepository.atualizarStatus(livroDb.id, 'EMPRESTADO');
-
-            return res.status(201).json({
-                mensagem: 'Empréstimo registrado com sucesso!',
-                emprestimo: emprestimoSalvo,
-                prazo_devolucao: emprestimoSalvo.data_devolucao
-            });
-
-        } catch (error) {
-            console.error('[CTRL - ERRO] Falha ao registrar empréstimo:', error);
-            return res.status(500).json({ erro: error.message });
+        // 1. Verifica se o Livro existe e está disponível
+        const livroDb = await livroRepository.buscarPorId(livro_id);
+        if (!livroDb) {
+            return res.status(404).json({ erro: 'Livro não encontrado no sistema.' });
         }
+        if (livroDb.status !== 'DISPONIVEL') {
+            return res.status(400).json({ erro: `Transação negada. O livro já consta como ${livroDb.status}.` });
+        }
+
+        // 2. Verifica se o Aluno (Leitor) existe no banco pelo CPF (que veio na variável leitor_id do app)
+        const leitorDb = await leitorRepository.buscarPorCpf(leitor_id);
+        if (!leitorDb) {
+            return res.status(404).json({ erro: 'Usuário não encontrado no sistema. Por favor, cadastre o leitor primeiro.' });
+        }
+
+        // 3. Registra o empréstimo
+        const novoEmprestimo = new Emprestimo({ 
+            livro_id: livroDb.id, 
+            leitor_id: leitorDb.cpf,
+            telefone: leitorDb.telefone,
+            nome: leitorDb.nome, 
+            data_devolucao: data_devolucao 
+        }); 
+
+        const emprestimoSalvo = await emprestimoRepository.salvar(novoEmprestimo);
+        
+        // 4. Atualiza o livro para EMPRESTADO
+        await livroRepository.atualizarStatus(livroDb.id, 'EMPRESTADO');
+
+        return res.status(201).json({
+            mensagem: 'Empréstimo registrado com sucesso!',
+            emprestimo: emprestimoSalvo
+        });
+
+    } catch (error) {
+        console.error('[CTRL - ERRO] Falha ao registrar empréstimo:', error);
+        return res.status(500).json({ erro: error.message });
     }
+}
 
-async devolverLivro(req, res) {
-        const { rfid_tag } = req.body;
-
+    async devolverLivro(req, res) {
         try {
-            // 1. Acha o livro pela TAG NFC usando o repositório de livros
-            const livroDb = await livroRepository.buscarPorRfid(rfid_tag);
-            
+            // ALINHAMENTO COM O APP: O app vai mandar o ID do livro direto
+            const { livro_id } = req.body;
+
+            const livroDb = await livroRepository.buscarPorId(livro_id);
             if (!livroDb) {
                 return res.status(404).json({ erro: 'Livro não encontrado no sistema.' });
             }
 
-            // 2. Muda o status do empréstimo ATIVO desse livro para 'DEVOLVIDO'
+            // 1. Encerra o empréstimo na tabela de empréstimos (Baixa na pendência do aluno)
             await emprestimoRepository.encerrarEmprestimo(livroDb.id);
 
-            // 3. Muda o status do livro no banco para 'DISPONIVEL'
+            // 2. Muda o status do livro no banco para 'DISPONIVEL'
             await livroRepository.atualizarStatus(livroDb.id, 'DISPONIVEL');
 
             return res.status(200).json({ mensagem: 'Livro devolvido com sucesso!' });

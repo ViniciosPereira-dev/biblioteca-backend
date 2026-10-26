@@ -35,7 +35,7 @@ function criarTabelas() {
                 data_devolucao DATETIME,
                 status TEXT DEFAULT 'ATIVO',
                 FOREIGN KEY (livro_id) REFERENCES livros (id),
-                FOREIGN KEY (leitor_id) REFERENCES leitores (id)
+                FOREIGN KEY (leitor_id) REFERENCES leitores (cpf)
             )
         `, (err) => {
             if (err) {

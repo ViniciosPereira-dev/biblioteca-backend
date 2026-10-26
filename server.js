@@ -16,6 +16,7 @@ app.use(express.json());
  app.use('/api/livros', livroRoutes);
  app.use('/api/leitores', leitorRoutes);
  app.use('/api/emprestimos', emprestimoRoutes);
+ 
 
 app.get('/api/ping', (req, res) => {
     res.status(200).json({ status: 'Sucesso', mensagem: 'Servidor rodando' });
